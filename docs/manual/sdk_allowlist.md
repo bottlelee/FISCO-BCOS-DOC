@@ -31,10 +31,10 @@ FISCO BCOS v2.6.0引入了群组级别的SDK白名单机制，控制SDK对群组
 # 设证书已拷贝到SDK，则进入SDK目录，执行如下命令(设sdk位于~/fisco目录)
 $ cd ~/fisco/web3sdk
 
-# 获取国密版SDK公钥
+# 获取非国密版SDK公钥
 $ cat dist/conf/sdk.publickey
 
-# 获取非国密版SDK公钥
+# 获取国密版SDK公钥
 $ cat dist/conf/gmsdk.publickey
 ```
 
