@@ -262,7 +262,7 @@ std::vector<std::string> getParallelTag(bytesConstRef param) override
 
 **（3）Compile, restart node**
 
-To manually compile nodes please check [here](./get_executable.md)
+To manually compile nodes please check [here](../manual/get_executable.md)
 
 After compilation, close node and replace with the original node binaries, and restart node.
 
@@ -280,7 +280,7 @@ The execution environment in this case:
 Web3SDK is to send parallel transaction, FISCO BCOS chain is to execute parallel transaction. The related configuration are:
 
 - [Web3SDK configuration](../sdk/java_sdk.md)
-- [Chain building](./build_chain.md)
+- [Chain building](../manual/build_chain.md)
 
 For pressure test on maximum performance, it at least needs:
 

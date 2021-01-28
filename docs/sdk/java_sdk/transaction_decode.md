@@ -1,5 +1,9 @@
 # 交易回执解析
 
+标签：``java-sdk`` ``回执解析`` ``日志解析``
+
+----
+
 FISCO BCOS的交易是一段发往区块链系统的请求数据，用于部署合约，调用合约接口，维护合约的生命周期以及管理资产，进行价值交换等。当交易确认后会产生交易回执，[交易回执](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#gettransactionreceipt)和[交易](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#gettransactionbyhash)均保存在区块里，用于记录交易执行过程生成的信息，如结果码、日志、消耗的gas量等。用户可以使用交易哈希查询交易回执，判定交易是否完成。  
 
 交易回执包含三个关键字段，分别是input, output , logs:
@@ -28,10 +32,10 @@ TransactionDecoderInterface decoder = new TransactionDecoderService(cryptoSuite)
 ```
 
 TransactionDecoderInterface 主要包括以下功能：
-
-- **public TransactionResponse decodeReceiptWithValues(String abi, String functionName, TransactionReceipt receipt)：** 解析不带函数返回值的交易回执。
-- **public TransactionResponse decodeReceiptWithoutValues(String abi, TransactionReceipt transactionReceipt)：** 解析带函数返回值的交易回执。
-- **public Map\<String, List\<Object\>\> decodeEvents(String abi, List\<Logs\> logs)：** 解析交易日志。
+// abi在合约生成的java客户端文件夹下,以HelloWorld.sol为例,为HelloWorld.abi中的json字符串。
+- **public TransactionResponse decodeReceiptWithValues(String abi, String functionName, TransactionReceipt receipt)：**  解析带函数返回值的交易回执。
+- **public TransactionResponse decodeReceiptWithoutValues(String abi, TransactionReceipt transactionReceipt)：** 解析不带函数返回值的交易回执。
+- **public Map\<String, List\<List\<Object\>\>\>\> decodeEvents(String abi, List\<Logs\> logs)：** 解析交易日志。
 - **public TransactionResponse decodeReceiptStatus(TransactionReceipt receipt)：** 解析回执的状态和报错信息等。
 
 ## 2. 解析带返回值的交易
@@ -98,8 +102,10 @@ function incrementUint256(uint256 v) public returns(uint256){
   ],
   "eventResultMap": {
     "LogIncrement": [
-      "0x7c8000530ae01adb3f8f77e7096b335eef83172f",
-      1
+      [
+        "0x7c8000530ae01adb3f8f77e7096b335eef83172f",
+        1
+      ]
     ]
   }
 }
@@ -159,8 +165,10 @@ TransactionResponse transactionResponseWithoutValues = decoder.decodeReceiptWith
   "valuesList": null,
   "eventResultMap": {
     "LogIncrement": [
-      "0x7c8000530ae01adb3f8f77e7096b335eef83172f",
-      1
+      [
+        "0x7c8000530ae01adb3f8f77e7096b335eef83172f",
+        1
+      ]
     ]
   }
 }
@@ -173,7 +181,7 @@ TransactionResponse transactionResponseWithoutValues = decoder.decodeReceiptWith
 只解析调用函数过程中触发的日志。传入合约的abi文件和交易回执的logs，解析交易结果；返回事件名和事件List的Map。
 
 ```
-Map<String, List<Object>> events = decoder.decodeEvents(abi, transactionReceipt.getLogs());
+Map<String, List<List<Object>>>> events = decoder.decodeEvents(abi, transactionReceipt.getLogs());
 ```
 
 ### 解析结果示例：
@@ -182,8 +190,10 @@ Map<String, List<Object>> events = decoder.decodeEvents(abi, transactionReceipt.
 ```
 {
   "LogIncrement": [
-    "0x7c8000530ae01adb3f8f77e7096b335eef83172f",
-    1
+    [
+      "0x7c8000530ae01adb3f8f77e7096b335eef83172f",
+      1
+    ]
   ]
 }
 ```

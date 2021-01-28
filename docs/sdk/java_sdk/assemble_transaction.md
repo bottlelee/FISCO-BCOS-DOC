@@ -1,14 +1,15 @@
+# 基于ABI和BIN的合约调用
 
+标签：``java-sdk`` ``发送交易`` 
 
-# 交易构造与发送
-
+----
 ```eval_rst
 .. note::
     java sdk同时支持将 `solidity` 转换为 `java` 文件后，调用相应的 `java` 方法部署和调用合约，也支持构造交易的方式部署和调用合约，这里主要展示交易构造与发送，前者的使用方法请参考 `这里 <./quick_start.html#solidityjava>`_ 
 ```
 
 ## 1. 准备abi和binary文件
-控制台提供一个专门的编译合约工具，方便开发者将Solidity合约文件编译生成Java文件和abi、binary文件，具体使用方式[参考这里](../manual/console.html#id10)。
+控制台提供一个专门的编译合约工具，方便开发者将Solidity合约文件编译生成Java文件和abi、binary文件，具体使用方式[参考这里](../../console/console.html#id10)。
 
 通过运行sol2java.sh脚本，生成的abi和binary文件分别位于contracts/sdk/abi、contracts/sdk/bin目录下（其中，国密版本编译产生的文件位于contracts/sdk/abi/sm和contracts/sdk/bin/sm文件夹下）。可将文件复制到项目的目录下，例如src/main/resources/abi和src/main/resources/bin。
 
@@ -34,7 +35,7 @@ contract HelloWorld{
 
 Java SDK提供了基于abi和binary文件来直接部署和调用合约的方式。可以使用AssembleTransactionProcessor来完成合约操作。
 
-### 部署合约
+### 2.1 部署合约
 
 部署合约调用了deployByContractLoader方法，传入合约名和构造函数的参数，上链部署合约，并获得TransactionResponse的结果。
 
@@ -94,9 +95,14 @@ TransactionResponse的数据结构如下：
 ```
 
 
-### 调用合约
+### 2.2 调用合约
+假如只调用合约，而不部署合约，那么就不需要复制binary文件，且在构造时无需传入binary文件的路径，例如构造方法的最后一个参数可传入空字符串。
 
-合约调用又可以被区分为『交易』和『查询』。被view修饰符修饰的方法一般称为“交易”，而未被修饰的才会称为“查询”。以下是“交易”和“查询”更详细的区别。
+```java
+    AssembleTransactionProcessor transactionProcessor = TransactionProcessorFactory.createAssembleTransactionProcessor(client, keyPair, "src/main/resources/abi/", "");
+```
+
+合约调用又可以被区分为『交易』和『查询』。被view修饰符修饰的方法一般称为“查询”，而未被修饰的才会称为“交易”。以下是“交易”和“查询”更详细的区别。
 
 | 内容 | 查询 | 交易 |
 | ---- | ---- | ----|
@@ -108,7 +114,7 @@ TransactionResponse的数据结构如下：
 | 是否消耗gas | 否 | 是 |
 | 是否变更存储状态 | 否 | 是 |
 
-#### 交易
+#### 2.2.1 发送交易
 
 调用合约交易使用了sendTransactionAndGetResponseByContractLoader来调用合约交易，此处展示了如何调用HelloWorld中的set函数。
 
@@ -154,7 +160,7 @@ TransactionResponse的数据结构如下：
 ```
 
 
-#### 查询合约
+#### 2.2.2 查询合约
 查询合约使用了sendCallByContractLoader来查询合约，此处展示了如何调用HelloWorld中的name函数来进行查询。
 
 ```
@@ -172,9 +178,7 @@ TransactionResponse的数据结构如下：
 }
 ```
 
-
-
-## 3. AssembleTransactionProcessor 的详细API功能介绍
+## 3. 详细API功能介绍
 
 AssembleTransactionProcessor支持自定义参数发送交易，详细的API功能如下。
 
@@ -196,3 +200,29 @@ AssembleTransactionProcessor支持自定义参数发送交易，详细的API功�
 - **public CallResponse sendCall(CallRequest callRequest)：** 传入CallRequest，并接收CallResponse结果。
 - **public CallResponse sendCallWithStringParams(String from, String to, String abi, String functionName, List\<String\> paramsList):** 传入调用者地址、合约地址、合约abi、函数名、String类型List的函数参数，并接收CallResponse结果。
 
+
+## 4. 扩展：使用接口签名的方式发送交易
+此外，对于特殊的场景，可以通过接口签名的方式DIY拼装交易和发送交易。
+
+例如上述HelloWorld智能合约定义的set方法的签名为 "set(string)"
+
+### 4.1 构造接口签名
+
+```java
+    ABICodec abiCodec = new ABICodec(client.getCryptoSuite());
+    String setMethodSignature = "set(string)";
+    String abiEncoded = abiCodec.encodeMethodByInterface(setMethodSignature, new Object[]{new String("Hello World")});
+```
+
+### 4.2 构造TransactionProcessor
+TransactionProcessor同样可使用TransactionProcessorFactory来构造。
+```java
+    // ……
+    TransactionProcessor transactionProcessor = TransactionProcessorFactory.createTransactionProcessor(client, keyPair);
+```
+
+### 4.3 发送交易
+```java
+    // ……
+    TransactionReceipt transactionReceipt = transactionProcessor.sendTransactionAndGetReceipt(contractAddress, abiEncoded, keyPair);
+```
